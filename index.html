@@ -1,0 +1,41 @@
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script type="text/javascript">
+  let repo = window.location.search.substring(1);
+  let resp = fetch(`https://api.github.com/repos/${repo}/releases?per_page=50`);
+
+  google.charts.load('current', {packages: ['timeline']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  let colors = ['240115', 'DE3C4B', '87F5FB', 'CEC3C1'];
+
+  async function drawChart() {
+    let container = document.getElementById('chart');
+    let chart = new google.visualization.Timeline(container);
+    let dataTable = new google.visualization.DataTable();
+
+    dataTable.addColumn({ type: 'string', id: 'Major' });
+    dataTable.addColumn({ type: 'string', id: 'Release' });
+    dataTable.addColumn({ type: 'string', id: 'style', role: 'style' });
+    dataTable.addColumn({ type: 'date', id: 'Start' });
+    dataTable.addColumn({ type: 'date', id: 'End' });
+
+    let releases = await (await resp).json();
+    let rows = [];
+    let end = new Date();
+    let color_index = {};
+    for (let rel of releases) {
+      let major = rel['tag_name'].match(/\d+\.\d+/)[0];
+      let start = new Date(rel['published_at']);
+      color_index[major] ||= 0
+      let color = '#' + colors[(color_index[major]++) % colors.length];
+      rows.unshift([major, rel['tag_name'], color, start, end]);
+      end = start;
+    }
+    dataTable.addRows(rows);
+
+    chart.draw(dataTable, {timeline: {showRowLabels: false}});
+  }
+</script>
+
+<div id="chart" style="height: 100%"></div>

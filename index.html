@@ -2,7 +2,7 @@
 
 <script type="text/javascript">
   let repo = window.location.search.substring(1);
-  let resp = fetch(`https://api.github.com/repos/${repo}/releases?per_page=50`);
+  let resp = fetch(`https://api.github.com/repos/${repo}/releases?per_page=55`);
 
   google.charts.load('current', {packages: ['timeline']});
   google.charts.setOnLoadCallback(drawChart);
@@ -25,11 +25,11 @@
     let end = new Date();
     let color_index = {};
     for (let rel of releases) {
-      let major = rel['tag_name'].match(/\d+\.\d+/)[0];
+      let [release, major] = rel['tag_name'].match(/(\d+\.\d+).*/);
       let start = new Date(rel['published_at']);
       color_index[major] ||= 0
       let color = '#' + colors[(color_index[major]++) % colors.length];
-      rows.unshift([major, rel['tag_name'], color, start, end]);
+      rows.unshift([major, release, color, start, end]);
       end = start;
     }
     dataTable.addRows(rows);
